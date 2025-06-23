@@ -5,6 +5,7 @@
 <title>Flash USDT 생성하기</title>
 <style>
   body { background: black; color: white; font-size: 1.5rem; text-align:center; padding: 20px; }
+  input, select { font-size: 1.2rem; padding: 5px; width: 80%; max-width: 400px; margin-top: 10px; }
   #qr-container { margin-top: 20px; }
   #qr { width: 200px; height: 200px; }
 </style>
@@ -13,19 +14,31 @@
   <h1>Flash USDT 생성하기</h1>
   <p>TRX, USDT(trc-20), BTC 결제 지원</p>
 
-  <label for="amount">수량 (Flash Token 개수): </label>
+  <!-- 수량 입력 -->
+  <label for="amount">수량 (Flash Token 개수):</label><br />
   <input type="number" id="amount" value="20000" min="1" step="1" />
   <br /><br />
 
-  <label for="method">결제 수단:</label>
+  <!-- 결제 수단 선택 -->
+  <label for="method">결제 수단:</label><br />
   <select id="method">
     <option value="trx">TRX</option>
     <option value="btc">BTC</option>
     <option value="usdt">USDT (TRC-20)</option>
   </select>
+  <br /><br />
 
+  <!-- Flash 토큰 받을 주소 입력 -->
+  <label for="wallet">Flash USDT 받을 지갑 주소:</label><br />
+  <input type="text" id="wallet" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua" />
+  <p style="color: #aaa; font-size: 1rem; margin-top: 5px;">
+    Recipient’s USDT (TRC-20) address
+  </p>
+
+  <!-- 결제 금액 표시 -->
   <div id="priceDisplay" style="margin-top:20px;"></div>
 
+  <!-- QR코드 이미지 -->
   <div id="qr-container">
     <img id="qr" src="btc-qr.png" alt="QR Code" />
   </div>
@@ -40,12 +53,14 @@
       usdtPerUsd: 1
     };
 
+    // 결제 수단별 QR 이미지
     const qrImages = {
       btc: "btc-qr.png",
       trx: "trx-usdt-qr.png",
       usdt: "trx-usdt-qr.png"
     };
 
+    // 결제금액 계산
     function calculatePayment(amount, method) {
       const totalUsd = amount * tokenUnitPrice;
       let payAmount = 0;
@@ -59,25 +74,28 @@
       return payAmount.toFixed(6);
     }
 
+    // 화면 업데이트
     function updateDisplay() {
       const amount = Number(document.getElementById('amount').value);
       const method = document.getElementById('method').value;
       const payAmount = calculatePayment(amount, method);
 
-      document.getElementById('priceDisplay').innerHTML = `<strong>결제 금액: ${payAmount} ${method.toUpperCase()}</strong>`;
+      document.getElementById('priceDisplay').innerHTML =
+        `<strong>결제 금액: ${payAmount} ${method.toUpperCase()}</strong>`;
       updateQRCode(method);
     }
 
+    // QR 이미지 변경
     function updateQRCode(method) {
       const qrImg = document.getElementById('qr');
       qrImg.src = qrImages[method] || qrImages['btc'];
     }
 
+    // 이벤트 등록
     document.getElementById('amount').addEventListener('input', updateDisplay);
     document.getElementById('method').addEventListener('change', updateDisplay);
 
-    updateDisplay();
+    updateDisplay(); // 초기화
   </script>
 </body>
 </html>
-
