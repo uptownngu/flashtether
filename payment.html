@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>입금 안내</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>입금 안내</h2>
+    <div id="paymentInfo"></div>
+    <canvas id="qrcode"></canvas>
+  </div>
+
+  <script src="qrcode.min.js"></script>
+  <script>
+    const addresses = {
+      btc: "bc1qrq3gwvsxtj7ujvhmadcufe82s06z3y83yu7wmx",
+      usdt: "TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua",
+      trx: "TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua"
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const usdtAmount = urlParams.get("amount");
+    const method = urlParams.get("method");
+    const address = addresses[method];
+
+    let label = "", coin = method.toUpperCase(), amountDisplay = usdtAmount;
+
+    if (method === "btc") {
+      fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=btc")
+        .then(res => res.json())
+        .then(data => {
+          const btcRate = data.tether.btc;
+          const btcAmount = (btcRate * usdtAmount).toFixed(8);
+          amountDisplay = btcAmount;
+          label = `<strong>${btcAmount} BTC</strong>를 아래 주소로 송금해 주세요:`;
+          document.getElementById("paymentInfo").innerHTML = `
+            <p>${label}</p><p><strong>${address}</strong></p>`;
+          const uri = `bitcoin:${address}?amount=${btcAmount}`;
+          QRCode.toCanvas(document.getElementById("qrcode"), uri);
+        });
+    } else {
+      label = `<strong>${usdtAmount} ${coin}</strong>를 아래 주소로 송금해 주세요:`;
+      document.getElementById("paymentInfo").innerHTML = `
+        <p>${label}</p><p><strong>${address}</strong></p>`;
+      const uri = `${address}`;
+      QRCode.toCanvas(document.getElementById("qrcode"), uri);
+    }
+  </script>
+</body>
+</html>

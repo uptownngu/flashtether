@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>구매하기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>구매 수량 (USDT) 입력</h2>
+    <input type="number" id="usdtAmount" placeholder="예: 100" />
+    <h3>결제 수단 선택</h3>
+    <select id="paymentMethod">
+      <option value="btc">비트코인 (BTC)</option>
+      <option value="usdt">테더 (TRC20)</option>
+      <option value="trx">트론 (TRX)</option>
+    </select><br><br>
+    <button onclick="goToPayment()" class="btn">다음</button>
+  </div>
+
+  <script>
+    function goToPayment() {
+      const amount = document.getElementById('usdtAmount').value;
+      const method = document.getElementById('paymentMethod').value;
+      if (!amount || amount <= 0) {
+        alert('올바른 수량을 입력하세요.');
+        return;
+      }
+      window.location.href = `payment.html?amount=${amount}&method=${method}`;
+    }
+  </script>
+</body>
+</html>
