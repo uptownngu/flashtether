@@ -85,11 +85,12 @@
 
   <div class="amount" id="amountDisplay">-</div>
 
-  <div class="qrCodeBox" id="qrCode"></div>
+  <div class="qrCodeBox" id="qrCode">
+    <img id="qrImage" src="btc_qr.png" alt="QR 코드" width="180" height="180" />
+  </div>
 
   <button id="nextBtn" disabled>다음 / Next</button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     const baseQuantity = 30000;
     const baseBTC = 0.0016901;
@@ -103,16 +104,14 @@
     const walletAddressInput = document.getElementById("walletAddress");
     const paymentMethods = document.getElementsByName("paymentMethod");
     const amountDisplay = document.getElementById("amountDisplay");
-    const qrCodeDiv = document.getElementById("qrCode");
+    const qrImage = document.getElementById("qrImage");
     const nextBtn = document.getElementById("nextBtn");
-
-    let qrCode;
 
     function getSelectedMethod() {
       for (const pm of paymentMethods) {
         if (pm.checked) return pm.value;
       }
-      return "btc"; // 기본값
+      return "btc";
     }
 
     function updateAmountAndQR() {
@@ -123,44 +122,32 @@
 
       let payAmount = 0;
       let payAddress = "";
-      let uri = "";
+      let imgSrc = "";
 
       if (method === "btc") {
         payAmount = ((quantity / baseQuantity) * baseBTC).toFixed(8);
         payAddress = BTC_ADDR;
-        uri = `bitcoin:${payAddress}?amount=${payAmount}`;
+        imgSrc = "btc_qr.png";
         amountDisplay.textContent = `${payAmount} BTC`;
       } else if (method === "trx") {
         payAmount = ((quantity / baseQuantity) * baseTRX).toFixed(5);
         payAddress = TRX_ADDR;
-        uri = `tron:${payAddress}?amount=${payAmount}`;
+        imgSrc = "trx_qr.png";
         amountDisplay.textContent = `${payAmount} TRX`;
       } else if (method === "usdt") {
         payAmount = ((quantity / baseQuantity) * baseUSDT).toFixed(2);
         payAddress = TRX_ADDR;
-        uri = `tron:${payAddress}?amount=${payAmount}`;
+        imgSrc = "trx_qr.png";
         amountDisplay.textContent = `${payAmount} USDT`;
       }
 
-      if (qrCode) {
-        qrCode.clear();
-        qrCode.makeCode(uri);
-      } else {
-        qrCode = new QRCode(qrCodeDiv, {
-          text: uri,
-          width: 180,
-          height: 180,
-          colorDark: "#ffffff",
-          colorLight: "#000000",
-        });
-      }
-
-      validateForm();
+      qrImage.src = imgSrc;
+      qrImage.alt = `${method.toUpperCase()} QR 코드`;
     }
 
     function validateForm() {
       const qtyValid = quantityInput.value && parseInt(quantityInput.value) > 0;
-      const walletValid = walletAddressInput.value && walletAddressInput.value.trim().length >= 10; // 최소길이 임의설정
+      const walletValid = walletAddressInput.value && walletAddressInput.value.trim().length >= 10;
       nextBtn.disabled = !(qtyValid && walletValid);
     }
 
@@ -170,7 +157,10 @@
     });
     walletAddressInput.addEventListener("input", validateForm);
     for (const pm of paymentMethods) {
-      pm.addEventListener("change", updateAmountAndQR);
+      pm.addEventListener("change", () => {
+        updateAmountAndQR();
+        validateForm();
+      });
     }
 
     nextBtn.addEventListener("click", () => {
@@ -183,7 +173,6 @@
         return;
       }
 
-      // 다음 페이지로 이동, GET 파라미터로 값 전달
       const url = `confirm.html?quantity=${encodeURIComponent(quantity)}&method=${encodeURIComponent(method)}&wallet=${encodeURIComponent(wallet)}`;
       window.location.href = url;
     });
