@@ -35,7 +35,7 @@
     .qrCodeBox {
       margin: 0 auto 20px;
       width: 180px;
-      height: 180px;
+      height: 220px;
     }
     button {
       background-color: #1a73e8;
@@ -50,6 +50,12 @@
     button:disabled {
       background-color: #555;
       cursor: not-allowed;
+    }
+    .emphasis-text {
+      color: #ff5555;
+      font-weight: bold;
+      margin-top: 10px;
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -87,6 +93,10 @@
 
   <div class="qrCodeBox" id="qrCode">
     <img id="qrImage" src="btc_qr.png" alt="QR 코드" width="180" height="180" />
+    <p class="emphasis-text">
+      * 반드시 입금 후에 다음 버튼을 눌러주세요.<br />
+      * Please make the payment before clicking the Next button.
+    </p>
   </div>
 
   <button id="nextBtn" disabled>다음 / Next</button>
