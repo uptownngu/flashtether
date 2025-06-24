@@ -2,154 +2,196 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Flash USDT 생성하기</title>
+  <title>Flash USDT 생성하기 - 결제</title>
   <style>
     body {
       background-color: #000;
       color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
       padding: 30px;
+      text-align: center;
     }
-    input {
+    input[type="number"], input[type="text"] {
       padding: 10px;
-      margin: 10px;
+      margin: 10px 0;
       font-size: 16px;
       width: 300px;
     }
-    .note {
-      font-size: 14px;
-      color: #ccc;
+    label {
+      font-size: 18px;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    .payment-methods {
+      margin: 20px 0;
     }
     .payment-method {
-      margin: 30px auto;
-      border: 1px solid #555;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 400px;
+      margin-bottom: 10px;
     }
     .amount {
       font-size: 20px;
-      margin: 10px 0;
+      margin: 15px 0;
     }
     .qrCodeBox {
-      margin: 10px auto;
+      margin: 0 auto 20px;
       width: 180px;
       height: 180px;
+    }
+    button {
+      background-color: #1a73e8;
+      border: none;
+      color: white;
+      padding: 15px 40px;
+      font-size: 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
+
   <h1>Flash USDT 생성하기</h1>
   <h3>TRX, USDT(trc-20), BTC 결제 지원</h3>
 
   <div>
-    <p class="note">구매 수량 입력 (기본 30000)</p>
+    <label for="quantityInput">구매 수량 입력 (기본 30000)</label><br />
     <input type="number" id="quantityInput" placeholder="30000" min="1" step="1" />
   </div>
 
-  <div id="btcPay" class="payment-method">
-    <h3>BTC 결제</h3>
-    <div class="amount" id="btcAmount">- BTC</div>
-    <div id="btcQR" class="qrCodeBox"></div>
-    <p class="note" id="btcAddr"></p>
+  <div class="payment-methods">
+    <div class="payment-method">
+      <input type="radio" id="payBTC" name="paymentMethod" value="btc" checked />
+      <label for="payBTC">BTC 결제</label>
+    </div>
+    <div class="payment-method">
+      <input type="radio" id="payTRX" name="paymentMethod" value="trx" />
+      <label for="payTRX">TRX 결제</label>
+    </div>
+    <div class="payment-method">
+      <input type="radio" id="payUSDT" name="paymentMethod" value="usdt" />
+      <label for="payUSDT">USDT (TRC-20) 결제</label>
+    </div>
   </div>
 
-  <div id="trxPay" class="payment-method">
-    <h3>TRX 결제</h3>
-    <div class="amount" id="trxAmount">- TRX</div>
-    <div id="trxQR" class="qrCodeBox"></div>
-    <p class="note" id="trxAddr"></p>
+  <div>
+    <label for="walletAddress">수령 지갑 주소 입력</label><br />
+    <input type="text" id="walletAddress" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua" />
   </div>
 
-  <div id="usdtPay" class="payment-method">
-    <h3>USDT (TRC-20) 결제</h3>
-    <div class="amount" id="usdtAmount">- USDT</div>
-    <div id="usdtQR" class="qrCodeBox"></div>
-    <p class="note" id="usdtAddr"></p>
-  </div>
+  <div class="amount" id="amountDisplay">-</div>
+
+  <div class="qrCodeBox" id="qrCode"></div>
+
+  <button id="nextBtn" disabled>다음 / Next</button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    // 기준 수량 및 단위당 금액
     const baseQuantity = 30000;
     const baseBTC = 0.0016901;
     const baseTRX = 653.23725;
     const baseUSDT = 185;
 
-    // 실제 결제 주소로 변경 필수!
     const BTC_ADDR = "bc1qrq3gwvsxtj7ujvhmadcufe82s06z3y83yu7wmx";
     const TRX_ADDR = "TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua";
 
-    // DOM 참조
     const quantityInput = document.getElementById("quantityInput");
+    const walletAddressInput = document.getElementById("walletAddress");
+    const paymentMethods = document.getElementsByName("paymentMethod");
+    const amountDisplay = document.getElementById("amountDisplay");
+    const qrCodeDiv = document.getElementById("qrCode");
+    const nextBtn = document.getElementById("nextBtn");
 
-    const btcAmountEl = document.getElementById("btcAmount");
-    const btcQRDiv = document.getElementById("btcQR");
-    const btcAddrEl = document.getElementById("btcAddr");
+    let qrCode;
 
-    const trxAmountEl = document.getElementById("trxAmount");
-    const trxQRDiv = document.getElementById("trxQR");
-    const trxAddrEl = document.getElementById("trxAddr");
-
-    const usdtAmountEl = document.getElementById("usdtAmount");
-    const usdtQRDiv = document.getElementById("usdtQR");
-    const usdtAddrEl = document.getElementById("usdtAddr");
-
-    let btcQR, trxQR, usdtQR;
-
-    function updatePayment() {
-      let quantity = parseInt(quantityInput.value);
-      if (!quantity || quantity < 1) {
-        quantity = baseQuantity;
+    function getSelectedMethod() {
+      for (const pm of paymentMethods) {
+        if (pm.checked) return pm.value;
       }
-
-      // 금액 계산
-      const btcPay = ((quantity / baseQuantity) * baseBTC).toFixed(8);
-      const trxPay = ((quantity / baseQuantity) * baseTRX).toFixed(5);
-      const usdtPay = ((quantity / baseQuantity) * baseUSDT).toFixed(2);
-
-      // 금액 표시
-      btcAmountEl.textContent = `${btcPay} BTC`;
-      btcAddrEl.textContent = `주소: ${BTC_ADDR}`;
-
-      trxAmountEl.textContent = `${trxPay} TRX`;
-      trxAddrEl.textContent = `주소: ${TRX_ADDR}`;
-
-      usdtAmountEl.textContent = `${usdtPay} USDT`;
-      usdtAddrEl.textContent = `주소: ${TRX_ADDR}`;
-
-      // QR 코드 URI 생성
-      const btcURI = `bitcoin:${BTC_ADDR}?amount=${btcPay}`;
-      const trxURI = `tron:${TRX_ADDR}?amount=${trxPay}`;
-      const usdtURI = `tron:${TRX_ADDR}?amount=${usdtPay}`;
-
-      // QR 코드 생성/갱신 함수
-      function refreshQR(qrInstance, element, text) {
-        if (qrInstance) {
-          qrInstance.clear();
-          qrInstance.makeCode(text);
-          return qrInstance;
-        } else {
-          return new QRCode(element, {
-            text: text,
-            width: 180,
-            height: 180,
-            colorDark: "#ffffff",
-            colorLight: "#000000",
-          });
-        }
-      }
-
-      btcQR = refreshQR(btcQR, btcQRDiv, btcURI);
-      trxQR = refreshQR(trxQR, trxQRDiv, trxURI);
-      usdtQR = refreshQR(usdtQR, usdtQRDiv, usdtURI);
+      return "btc"; // 기본값
     }
 
-    quantityInput.addEventListener("input", updatePayment);
+    function updateAmountAndQR() {
+      let quantity = parseInt(quantityInput.value);
+      if (!quantity || quantity < 1) quantity = baseQuantity;
 
-    // 페이지 로드 시 기본값 표시
-    updatePayment();
+      const method = getSelectedMethod();
+
+      let payAmount = 0;
+      let payAddress = "";
+      let uri = "";
+
+      if (method === "btc") {
+        payAmount = ((quantity / baseQuantity) * baseBTC).toFixed(8);
+        payAddress = BTC_ADDR;
+        uri = `bitcoin:${payAddress}?amount=${payAmount}`;
+        amountDisplay.textContent = `${payAmount} BTC`;
+      } else if (method === "trx") {
+        payAmount = ((quantity / baseQuantity) * baseTRX).toFixed(5);
+        payAddress = TRX_ADDR;
+        uri = `tron:${payAddress}?amount=${payAmount}`;
+        amountDisplay.textContent = `${payAmount} TRX`;
+      } else if (method === "usdt") {
+        payAmount = ((quantity / baseQuantity) * baseUSDT).toFixed(2);
+        payAddress = TRX_ADDR;
+        uri = `tron:${payAddress}?amount=${payAmount}`;
+        amountDisplay.textContent = `${payAmount} USDT`;
+      }
+
+      if (qrCode) {
+        qrCode.clear();
+        qrCode.makeCode(uri);
+      } else {
+        qrCode = new QRCode(qrCodeDiv, {
+          text: uri,
+          width: 180,
+          height: 180,
+          colorDark: "#ffffff",
+          colorLight: "#000000",
+        });
+      }
+
+      validateForm();
+    }
+
+    function validateForm() {
+      const qtyValid = quantityInput.value && parseInt(quantityInput.value) > 0;
+      const walletValid = walletAddressInput.value && walletAddressInput.value.trim().length >= 10; // 최소길이 임의설정
+      nextBtn.disabled = !(qtyValid && walletValid);
+    }
+
+    quantityInput.addEventListener("input", () => {
+      updateAmountAndQR();
+      validateForm();
+    });
+    walletAddressInput.addEventListener("input", validateForm);
+    for (const pm of paymentMethods) {
+      pm.addEventListener("change", updateAmountAndQR);
+    }
+
+    nextBtn.addEventListener("click", () => {
+      const quantity = quantityInput.value;
+      const method = getSelectedMethod();
+      const wallet = walletAddressInput.value.trim();
+
+      if (!quantity || quantity < 1 || !wallet) {
+        alert("구매 수량과 지갑 주소를 정확히 입력해 주세요.\nPlease enter valid quantity and wallet address.");
+        return;
+      }
+
+      // 다음 페이지로 이동, GET 파라미터로 값 전달
+      const url = `confirm.html?quantity=${encodeURIComponent(quantity)}&method=${encodeURIComponent(method)}&wallet=${encodeURIComponent(wallet)}`;
+      window.location.href = url;
+    });
+
+    // 초기 실행
+    updateAmountAndQR();
+    validateForm();
   </script>
+
 </body>
 </html>

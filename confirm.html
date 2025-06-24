@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flash USDT 송금 안내</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    .wallet {
+      font-size: 20px;
+      margin: 20px 0;
+      word-break: break-all;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #111;
+      display: inline-block;
+      max-width: 90%;
+    }
+    p {
+      font-size: 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>감사합니다!</h1>
+  <p>잠시 뒤 입력하신 지갑 주소로 Flash Tether가 송금될 예정입니다.</p>
+  <p>We will send Flash Tether to the wallet address you provided shortly.</p>
+
+  <div>
+    <strong>수령 지갑 주소 (Wallet Address):</strong>
+    <div class="wallet" id="walletAddress"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const wallet = params.get("wallet");
+
+    const walletDiv = document.getElementById("walletAddress");
+    if (wallet && wallet.trim().length > 0) {
+      walletDiv.textContent = wallet;
+    } else {
+      walletDiv.textContent = "주소 정보가 없습니다.";
+    }
+  </script>
+
+</body>
+</html>
