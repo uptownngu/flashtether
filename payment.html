@@ -1,101 +1,56 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>Flash USDT 생성하기</title>
-<style>
-  body { background: black; color: white; font-size: 1.5rem; text-align:center; padding: 20px; }
-  input, select { font-size: 1.2rem; padding: 5px; width: 80%; max-width: 400px; margin-top: 10px; }
-  #qr-container { margin-top: 20px; }
-  #qr { width: 200px; height: 200px; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Flash USDT 생성하기</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    input, select {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      width: 300px;
+    }
+    .qr {
+      margin-top: 20px;
+    }
+    img {
+      max-width: 200px;
+      margin: 10px auto;
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <h1>Flash USDT 생성하기</h1>
-  <p>TRX, USDT(trc-20), BTC 결제 지원</p>
+  <h3>TRX, USDT(trc-20), BTC 결제 지원</h3>
 
-  <!-- 수량 입력 -->
-  <label for="amount">수량 (Flash Token 개수):</label><br />
-  <input type="number" id="amount" value="20000" min="1" step="1" />
-  <br /><br />
+  <label for="amountInput">수량 입력 (Amount)</label>
+  <input type="number" id="amountInput" name="amount" required>
 
-  <!-- 결제 수단 선택 -->
-  <label for="method">결제 수단:</label><br />
-  <select id="method">
-    <option value="trx">TRX</option>
-    <option value="btc">BTC</option>
-    <option value="usdt">USDT (TRC-20)</option>
-  </select>
-  <br /><br />
-
-  <!-- Flash 토큰 받을 주소 입력 -->
-  <label for="wallet">Flash USDT 받을 지갑 주소:</label><br />
-  <input type="text" id="wallet" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua" />
-  <p style="color: #aaa; font-size: 1rem; margin-top: 5px;">
-    Recipient’s USDT (TRC-20) address
+  <p style="color: #ffffff; font-size: 14px; margin-top: 8px;">
+    최소 구매 수량은 <strong>30,000 Flash USDT</strong>입니다. <br>
+    <em>Minimum purchase amount is <strong>30,000 Flash USDT</strong>.</em>
   </p>
 
-  <!-- 결제 금액 표시 -->
-  <div id="priceDisplay" style="margin-top:20px;"></div>
+  <label for="wallet">수령 지갑 주소 입력<br><em>Recipient's USDT (TRC-20) address</em></label>
+  <input type="text" id="wallet" name="wallet" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua" required />
 
-  <!-- QR코드 이미지 -->
-  <div id="qr-container">
-    <img id="qr" src="btc-qr.png" alt="QR Code" />
+  <div class="qr">
+    <h3>BTC 결제 주소</h3>
+    <img src="btc_qr.png" alt="BTC QR Code" />
+    <p style="font-size: 14px;">bc1qrq3gwvsxtj7ujvhmadcufe82s06z3y83yu7wmx</p>
+
+    <h3>TRX / USDT 결제 주소</h3>
+    <img src="trx_qr.png" alt="TRX/USDT QR Code" />
+    <p style="font-size: 14px;">TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua</p>
   </div>
-
-  <script>
-    const tokenUnitPrice = 0.0025; // 1개당 가격 USD
-
-    // 2025년 6월 23일 기준 환율
-    const exchangeRates = {
-      trxPerUsd: 3.7,
-      btcPerUsd: 0.000032,
-      usdtPerUsd: 1
-    };
-
-    // 결제 수단별 QR 이미지
-    const qrImages = {
-      btc: "btc-qr.png",
-      trx: "trx-usdt-qr.png",
-      usdt: "trx-usdt-qr.png"
-    };
-
-    // 결제금액 계산
-    function calculatePayment(amount, method) {
-      const totalUsd = amount * tokenUnitPrice;
-      let payAmount = 0;
-      if (method === 'trx') {
-        payAmount = totalUsd * exchangeRates.trxPerUsd;
-      } else if (method === 'btc') {
-        payAmount = totalUsd * exchangeRates.btcPerUsd;
-      } else if (method === 'usdt') {
-        payAmount = totalUsd * exchangeRates.usdtPerUsd;
-      }
-      return payAmount.toFixed(6);
-    }
-
-    // 화면 업데이트
-    function updateDisplay() {
-      const amount = Number(document.getElementById('amount').value);
-      const method = document.getElementById('method').value;
-      const payAmount = calculatePayment(amount, method);
-
-      document.getElementById('priceDisplay').innerHTML =
-        `<strong>결제 금액: ${payAmount} ${method.toUpperCase()}</strong>`;
-      updateQRCode(method);
-    }
-
-    // QR 이미지 변경
-    function updateQRCode(method) {
-      const qrImg = document.getElementById('qr');
-      qrImg.src = qrImages[method] || qrImages['btc'];
-    }
-
-    // 이벤트 등록
-    document.getElementById('amount').addEventListener('input', updateDisplay);
-    document.getElementById('method').addEventListener('change', updateDisplay);
-
-    updateDisplay(); // 초기화
-  </script>
 </body>
 </html>
