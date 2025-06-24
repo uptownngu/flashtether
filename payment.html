@@ -18,16 +18,10 @@
       font-size: 16px;
       width: 300px;
     }
-    .section {
-      margin-top: 30px;
-    }
-    .qr {
-      margin-top: 20px;
-    }
     img {
-      max-width: 200px;
-      margin: 10px auto;
-      display: block;
+      width: 200px;
+      height: 200px;
+      margin-top: 10px;
     }
     .note {
       font-size: 14px;
@@ -39,37 +33,52 @@
   <h1>Flash USDT 생성하기</h1>
   <h3>TRX, USDT(trc-20), BTC 결제 지원</h3>
 
-  <div class="section">
-    <label for="amountInput">수량 입력 (Amount)</label><br>
-    <input type="number" id="amountInput" name="amount" placeholder="예: 30000" required><br>
-    <span class="note">
-      최소 구매 수량은 <strong>30,000 Flash USDT</strong>입니다.<br>
-      <em>Minimum purchase amount is <strong>30,000 Flash USDT</strong>.</em>
-    </span>
+  <div>
+    <p id="amountText"></p>
+    <p class="note">수령 지갑 주소 입력</p>
+    <input type="text" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua">
   </div>
 
-  <div class="section">
-    <label for="wallet">수령 지갑 주소 입력<br>
-      <em>Recipient's USDT (TRC-20) address</em>
-    </label><br>
-    <input type="text" id="wallet" name="wallet" placeholder="예: TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua" required>
-  </div>
+  <div id="paymentDetails"></div>
 
-  <div class="section">
-    <h3>💱 30,000 Flash USDT 구매 시 금액 안내</h3>
-    <p class="note">USDT (TRC-20): <strong>185 USDT</strong></p>
-    <p class="note">TRX: <strong>653.23725 TRX</strong></p>
-    <p class="note">BTC: <strong>0.0016901 BTC</strong></p>
-  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const amount = params.get("amount");
+    const method = params.get("method");
 
-  <div class="qr">
-    <h3>BTC 결제 주소</h3>
-    <img src="btc_qr.png" alt="BTC QR Code" />
-    <p class="note">bc1qrq3gwvsxtj7ujvhmadcufe82s06z3y83yu7wmx</p>
+    const BTC_ADDR = "bc1qrq3gwvsxtj7ujvhmadcufe82s06z3y83yu7wmx";
+    const TRX_ADDR = "TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua";
 
-    <h3>TRX / USDT 결제 주소</h3>
-    <img src="trx_qr.png" alt="TRX/USDT QR Code" />
-    <p class="note">TKzw7vLBBFD8GgTt7BD6BmWnou8ujTpbua</p>
-  </div>
+    const BTC_AMOUNT = "0.0016901";
+    const TRX_AMOUNT = "653.23725";
+    const USDT_AMOUNT = "185";
+
+    const btcQR = "btc_qr.png";
+    const trxQR = "trx_qr.png";
+
+    document.getElementById("amountText").innerHTML = `<strong>${amount}</strong> Flash USDT를 구매합니다`;
+
+    let html = "";
+    if (method === "btc") {
+      html = `<h3>BTC 결제 주소</h3>
+              <img src="${btcQR}" alt="BTC QR">
+              <p>${BTC_ADDR}</p>
+              <p class="note">지불 금액: ${BTC_AMOUNT} BTC</p>`;
+    } else if (method === "trx") {
+      html = `<h3>TRX 결제 주소</h3>
+              <img src="${trxQR}" alt="TRX QR">
+              <p>${TRX_ADDR}</p>
+              <p class="note">지불 금액: ${TRX_AMOUNT} TRX</p>`;
+    } else if (method === "usdt") {
+      html = `<h3>USDT (TRC-20) 결제 주소</h3>
+              <img src="${trxQR}" alt="USDT QR">
+              <p>${TRX_ADDR}</p>
+              <p class="note">지불 금액: ${USDT_AMOUNT} USDT</p>`;
+    } else {
+      html = "<p>잘못된 접근입니다.</p>";
+    }
+
+    document.getElementById("paymentDetails").innerHTML = html;
+  </script>
 </body>
 </html>
